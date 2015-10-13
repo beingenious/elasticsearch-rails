@@ -28,7 +28,7 @@ module Elasticsearch
           # Model initializer reset the changes information
           def initialize(attributes={})
             super
-            reset_changes
+            clear_changes_information
           end
 
           # Removes current changes and makes them accessible through +previous_changes+.
