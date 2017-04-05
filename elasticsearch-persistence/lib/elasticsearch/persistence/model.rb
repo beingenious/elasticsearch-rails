@@ -8,6 +8,7 @@ require 'elasticsearch/persistence/model/base'
 require 'elasticsearch/persistence/model/errors'
 require 'elasticsearch/persistence/model/store'
 require 'elasticsearch/persistence/model/find'
+require 'elasticsearch/persistence/model/dirty'
 
 module Elasticsearch
   module Persistence
@@ -30,11 +31,12 @@ module Elasticsearch
           include ActiveModel::Serialization
           include ActiveModel::Serializers::JSON
           include ActiveModel::Validations
+          include ActiveModel::Dirty
 
           include Virtus.model
 
           extend  ActiveModel::Callbacks
-          define_model_callbacks :create, :save, :update, :destroy
+          define_model_callbacks :create, :save, :update, :destroy, :validation
           define_model_callbacks :find, :touch, only: :after
 
           include Elasticsearch::Persistence::Model::Base::InstanceMethods
@@ -43,6 +45,9 @@ module Elasticsearch
           include Elasticsearch::Persistence::Model::Store::InstanceMethods
 
           extend  Elasticsearch::Persistence::Model::Find::ClassMethods
+
+          extend  Elasticsearch::Persistence::Model::Dirty::ClassMethods
+          include Elasticsearch::Persistence::Model::Dirty::InstanceMethods
 
           class << self
             # Re-define the Virtus' `attribute` method, to configure Elasticsearch mapping as well
