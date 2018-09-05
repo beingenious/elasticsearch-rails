@@ -11,6 +11,19 @@ module Elasticsearch
           include Enumerable
 
           attr_reader :repository
+          attr_reader :raw_response
+
+          # The key for accessing the results in an Elasticsearch query response.
+          #
+          HITS = 'hits'.freeze
+
+          # The key for accessing the total number of hits in an Elasticsearch query response.
+          #
+          TOTAL = 'total'.freeze
+
+          # The key for accessing the maximum score in an Elasticsearch query response.
+          #
+          MAX_SCORE = 'max_score'.freeze
 
           # @param repository [Elasticsearch::Persistence::Repository::Class] The repository instance
           # @param response   [Hash]  The full response returned from the Elasticsearch client
@@ -18,8 +31,8 @@ module Elasticsearch
           #
           def initialize(repository, response, options={})
             @repository = repository
-            @response   = Elasticsearch::Model::HashWrapper.new(response)
-            @options    = options
+            @raw_response = response
+            @options = options
           end
 
           def method_missing(method_name, *arguments, &block)
@@ -33,25 +46,25 @@ module Elasticsearch
           # The number of total hits for a query
           #
           def total
-            response['hits']['total']
+            raw_response[HITS][TOTAL]
           end
 
           # The maximum score for a query
           #
           def max_score
-            response['hits']['max_score']
+            raw_response[HITS][MAX_SCORE]
           end
 
           # Yields [object, hit] pairs to the block
           #
           def each_with_hit(&block)
-            results.zip(response['hits']['hits']).each(&block)
+            results.zip(raw_response[HITS][HITS]).each(&block)
           end
 
           # Yields [object, hit] pairs and returns the result
           #
           def map_with_hit(&block)
-            results.zip(response['hits']['hits']).map(&block)
+            results.zip(raw_response[HITS][HITS]).map(&block)
           end
 
           # Return the collection of domain objects
@@ -64,7 +77,7 @@ module Elasticsearch
           # @return [Array]
           #
           def results
-            @results ||= response['hits']['hits'].map do |document|
+            @results ||= raw_response[HITS][HITS].map do |document|
               repository.deserialize(document.to_hash)
             end
           end
@@ -81,7 +94,7 @@ module Elasticsearch
           # @return [Elasticsearch::Model::HashWrapper]
           #
           def response
-            @response
+            @response ||= Elasticsearch::Model::HashWrapper.new(raw_response)
           end
         end
       end
