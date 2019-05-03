@@ -1,13 +1,12 @@
+require 'ice_nine'
+require 'ice_nine/core_ext/object'
+
 module Elasticsearch
   module Persistence
     module Model
-      # This module contains the Dirty interface for models
-      #
       module Dirty
-
         module ClassMethods #:nodoc:
-
-          # Track each attributes
+          # Track each (virtus) attributes
           def attribute(attr_name, *new_properties)
             super
             define_attribute_methods attr_name
@@ -17,52 +16,59 @@ module Elasticsearch
                 #{attr_name}_will_change! unless new_value == attribute_set[:#{attr_name}].get(self)
                 super
               end
+
+              def #{attr_name}
+                super.deep_freeze
+              end
             EOF_M
 
             class_eval method_str, __FILE__, __LINE__ + 1
           end
         end
 
-        module InstanceMethods
-
-          # Model initializer reset the changes information
-          def initialize(attributes={})
+        module InstanceMethods #:nodoc:
+          def initialize(attributes = {})
             super
             clear_changes_information
           end
 
-          # Removes current changes and makes them accessible through +previous_changes+.
-          def save(options={})
-            changes_applied if response = super
+          def save(options = {})
+            # We introduce an optimisation for all the dirty model
+            # By default the save method make a partial update
+            if options.delete(:force) == true || !persisted?
+              response = super
+              changes_applied if response
+              response
+            else
+              update(Hash[changes.map { |k, v| [k, v[1]] }], {
+                retry_on_conflict: 3
+              }.merge(options))
+            end
+          end
+
+          def update(attributes = {}, options = {})
+            response = super
+            clear_attribute_changes(attributes.keys) if response
             response
           end
 
-          def update(attributes={}, options={})
-            attributes_changes_applied!(attributes.keys) if response = super
+          def increment(attribute, value = 1, options = {})
+            response = super
+            clear_attribute_changes(Array(attribute)) if response
             response
           end
 
-          def increment(attribute, value=1, options={})
-            attributes_changes_applied!(Array(attribute)) if response = super
+          def decrement(attribute, value = 1, options = {})
+            response = super
+            clear_attribute_changes(Array(attribute)) if response
             response
           end
 
-          def decrement(attribute, value=1, options={})
-            attributes_changes_applied!(Array(attribute)) if response = super
+          def touch(attribute = :updated_at, options = {})
+            response = super
+            clear_attribute_changes(Array(attribute)) if response
             response
           end
-
-          def touch(attribute=:updated_at, options={})
-            attributes_changes_applied!(Array(attribute)) if response = super
-            response
-          end
-
-          # Removes specific attributes changes and makes it accessible through +previous_changes+.
-          def attributes_changes_applied!(attributes)
-            @previously_changed = ActiveSupport::HashWithIndifferentAccess[attributes.map { |attr| [attr, attribute_change(attr)] }]
-            attributes.each { |attr| @changed_attributes.delete(attr) }
-          end
-
         end
       end
     end

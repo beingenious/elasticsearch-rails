@@ -148,7 +148,7 @@ module Elasticsearch
 
           attr_reader :hit
 
-          raise_deprecation_warning!
+          # raise_deprecation_warning!
         end
 
       end
