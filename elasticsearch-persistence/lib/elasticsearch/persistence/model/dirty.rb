@@ -36,7 +36,8 @@ module Elasticsearch
             # We introduce an optimisation for all the dirty model
             # By default the save method make a partial update
             if options.delete(:force) == true || !persisted?
-              response = super
+              options = { version: _version }.merge(options) if persisted?
+              response = super(options)
               changes_applied if response
               response
             else
