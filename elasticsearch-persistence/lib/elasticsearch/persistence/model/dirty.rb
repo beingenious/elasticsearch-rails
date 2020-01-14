@@ -41,11 +41,15 @@ module Elasticsearch
               changes_applied if response
               response
             else
-              run_callbacks :save do
-                update(Hash[changes.map { |k, v| [k, v[1]] }], {
-                  retry_on_conflict: 3
-                }.merge(options))
+              run_callbacks :update do
+                run_callbacks :save do
+                  clear_attribute_changes(changes.select { |k, v| v[0] == v[1] }.keys)
+                  response = update(Hash[changes.map { |k, v| [k, v[1]] }], {
+                    retry_on_conflict: 3
+                  }.merge(options))
+                end
               end
+              response
             end
           end
 
