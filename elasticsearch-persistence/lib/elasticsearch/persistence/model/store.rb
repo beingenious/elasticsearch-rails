@@ -122,7 +122,7 @@ module Elasticsearch
               options.update type:  self._type  if self._type
 
               attributes.update( { updated_at: Time.now.utc } )
-              response = self.class.gateway.update(self.id, { doc: attributes}.merge(options))
+              response = self.class.gateway.update(self.id, { doc: attributes.transform_keys(&:to_s) }.merge(options))
 
               self.attributes = self.attributes.merge(attributes)
               @_index    = response['_index']
