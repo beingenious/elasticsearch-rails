@@ -1,5 +1,5 @@
 module Elasticsearch
   module Persistence
-    VERSION = "5.1.0"
+    VERSION = "7.1.1"
   end
 end
