@@ -351,7 +351,7 @@ module Elasticsearch
             body:  document
           }
 
-          if Elasticsearch::Model.include_type_in_request?(request_type)
+          if Elasticsearch::Model.respond_to?(:include_type_in_request?) && Elasticsearch::Model.include_type_in_request?(request_type)
             request[:type] = request_type
           end
 
@@ -380,7 +380,7 @@ module Elasticsearch
             id:    self.id
           }
 
-          if Elasticsearch::Model.include_type_in_request?(request_type)
+          if Elasticsearch::Model.respond_to?(:include_type_in_request?) && Elasticsearch::Model.include_type_in_request?(request_type)
             request[:type] = request_type
           end
 
@@ -428,7 +428,7 @@ module Elasticsearch
               body:  { doc: attributes }
             }
 
-            if Elasticsearch::Model.include_type_in_request?(request_type)
+            if Elasticsearch::Model.respond_to?(:include_type_in_request?) && Elasticsearch::Model.include_type_in_request?(request_type)
               request[:type] = request_type
             end
 
@@ -462,7 +462,7 @@ module Elasticsearch
             body:  { doc: attributes }
           }
 
-          if Elasticsearch::Model.include_type_in_request?(request_type)
+          if Elasticsearch::Model.respond_to?(:include_type_in_request?) && Elasticsearch::Model.include_type_in_request?(request_type)
             request[:type] = request_type
           end
 

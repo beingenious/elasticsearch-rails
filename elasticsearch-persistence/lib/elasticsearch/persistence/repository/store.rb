@@ -25,7 +25,9 @@ module Elasticsearch
             id:    id,
             body:  serialized
           }
-          request[:type] = request_type if Elasticsearch::Model.include_type_in_request?(request_type)
+          if Elasticsearch::Model.respond_to?(:include_type_in_request?) && Elasticsearch::Model.include_type_in_request?(request_type)
+            request[:type] = request_type
+          end
           client.index(request.merge(request_options))
         end
 
@@ -78,7 +80,9 @@ module Elasticsearch
             id:    id,
             body:  body
           }
-          request[:type] = type if Elasticsearch::Model.include_type_in_request?(type)
+          if Elasticsearch::Model.respond_to?(:include_type_in_request?) && Elasticsearch::Model.include_type_in_request?(type)
+            request[:type] = type
+          end
           client.update(request.merge(options))
         end
 
@@ -106,7 +110,9 @@ module Elasticsearch
             index: index_name,
             id:    id
           }
-          request[:type] = request_type if Elasticsearch::Model.include_type_in_request?(request_type)
+          if Elasticsearch::Model.respond_to?(:include_type_in_request?) && Elasticsearch::Model.include_type_in_request?(request_type)
+            request[:type] = request_type
+          end
           client.delete(request.merge(request_options))
         end
       end

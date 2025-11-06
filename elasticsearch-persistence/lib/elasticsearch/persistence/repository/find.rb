@@ -47,7 +47,9 @@ module Elasticsearch
           request_options = options.dup
           request_type    = request_options.delete(:type) || type
           request  = { index: index_name, id: id }
-          request[:type] = request_type if Elasticsearch::Model.include_type_in_request?(request_type)
+          if Elasticsearch::Model.respond_to?(:include_type_in_request?) && Elasticsearch::Model.include_type_in_request?(request_type)
+            request[:type] = request_type
+          end
           client.exists(request.merge(request_options))
         end
 
@@ -58,7 +60,9 @@ module Elasticsearch
           request_options = options.dup
           request_type    = request_options.delete(:type) || type
           request  = { index: index_name, id: id }
-          request[:type] = request_type if Elasticsearch::Model.include_type_in_request?(request_type)
+          if Elasticsearch::Model.respond_to?(:include_type_in_request?) && Elasticsearch::Model.include_type_in_request?(request_type)
+            request[:type] = request_type
+          end
           document = client.get(request.merge(request_options))
 
           deserialize(document)
@@ -76,7 +80,9 @@ module Elasticsearch
             index: index_name,
             body:  { ids: ids }
           }
-          request[:type] = request_type if Elasticsearch::Model.include_type_in_request?(request_type)
+          if Elasticsearch::Model.respond_to?(:include_type_in_request?) && Elasticsearch::Model.include_type_in_request?(request_type)
+            request[:type] = request_type
+          end
           documents = client.mget(request.merge(request_options))
 
           documents['docs'].map { |document| document['found'] ? deserialize(document) : nil }

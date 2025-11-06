@@ -47,7 +47,7 @@ module Elasticsearch
             @definition[:q] = q
           end
 
-          if Elasticsearch::Model.include_type_in_request?(__document_type)
+          if Elasticsearch::Model.respond_to?(:include_type_in_request?) && Elasticsearch::Model.include_type_in_request?(__document_type)
             @definition[:type] = __document_type
           end
 

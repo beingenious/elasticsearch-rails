@@ -39,15 +39,12 @@ module Elasticsearch
         # Get or set the document type used when storing and retrieving documents
         #
         def document_type name=nil
-          if name
-            @document_type = name
-          elsif @document_type
-            @document_type
-          elsif Elasticsearch::Model.skip_type?
-            '_doc'
-          else
-            klass ? klass.to_s.underscore : nil
-          end
+          return (@document_type = name) if name
+
+          skip_types = Elasticsearch::Model.respond_to?(:skip_type?) ? Elasticsearch::Model.skip_type? : true
+          return '_doc' if skip_types
+
+          @document_type ||= (klass ? klass.to_s.underscore : nil)
         end; alias :type :document_type
 
         # Set the document type used when storing and retrieving documents

@@ -125,7 +125,7 @@ module Elasticsearch
               body:  __batch_to_bulk(batch, transform)
             }
 
-            if Elasticsearch::Model.include_type_in_request?(target_type)
+            if Elasticsearch::Model.respond_to?(:include_type_in_request?) && Elasticsearch::Model.include_type_in_request?(target_type)
               bulk_request[:type] = target_type
             end
 

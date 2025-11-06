@@ -58,13 +58,12 @@ module Elasticsearch
         #     Article.document_type "my-article"
         #
         def document_type name=nil
-          if name
-            @document_type = name
-          elsif @document_type
-            @document_type
-          else
-            Elasticsearch::Model.skip_type? ? '_doc' : implicit(:document_type)
-          end
+          return (@document_type = name) if name
+
+          skip_types = Elasticsearch::Model.respond_to?(:skip_type?) ? Elasticsearch::Model.skip_type? : true
+          return '_doc' if skip_types
+
+          @document_type ||= implicit(:document_type)
         end
 
 
@@ -135,7 +134,12 @@ module Elasticsearch
         #     @article.__elasticsearch__.update_document
         #
         def document_type name=nil
-          @document_type = name || @document_type || self.class.document_type
+          return (@document_type = name) if name
+
+          skip_types = Elasticsearch::Model.respond_to?(:skip_type?) ? Elasticsearch::Model.skip_type? : true
+          return '_doc' if skip_types
+
+          @document_type ||= self.class.document_type
         end
 
         # Set the document type

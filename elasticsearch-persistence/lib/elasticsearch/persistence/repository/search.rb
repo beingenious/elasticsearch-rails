@@ -50,14 +50,18 @@ module Elasticsearch
               index: index_name,
               body:  query_or_definition.to_hash
             }
-            request[:type] = request_type if Elasticsearch::Model.include_type_in_request?(request_type)
+            if Elasticsearch::Model.respond_to?(:include_type_in_request?) && Elasticsearch::Model.include_type_in_request?(request_type)
+              request[:type] = request_type
+            end
             response = client.search(request.merge(request_options))
           when query_or_definition.is_a?(String)
             request = {
               index: index_name,
               q:     query_or_definition
             }
-            request[:type] = request_type if Elasticsearch::Model.include_type_in_request?(request_type)
+            if Elasticsearch::Model.respond_to?(:include_type_in_request?) && Elasticsearch::Model.include_type_in_request?(request_type)
+              request[:type] = request_type
+            end
             response = client.search(request.merge(request_options))
           else
             raise ArgumentError, "[!] Pass the search definition as a Hash-like object or pass the query as a String" +
@@ -97,14 +101,18 @@ module Elasticsearch
               index: index_name,
               body:  query_or_definition.to_hash
             }
-            request[:type] = request_type if Elasticsearch::Model.include_type_in_request?(request_type)
+            if Elasticsearch::Model.respond_to?(:include_type_in_request?) && Elasticsearch::Model.include_type_in_request?(request_type)
+              request[:type] = request_type
+            end
             response = client.count(request.merge(request_options))
           when query_or_definition.is_a?(String)
             request = {
               index: index_name,
               q:     query_or_definition
             }
-            request[:type] = request_type if Elasticsearch::Model.include_type_in_request?(request_type)
+            if Elasticsearch::Model.respond_to?(:include_type_in_request?) && Elasticsearch::Model.include_type_in_request?(request_type)
+              request[:type] = request_type
+            end
             response = client.count(request.merge(request_options))
           else
             raise ArgumentError, "[!] Pass the search definition as a Hash-like object or pass the query as a String, not as [#{query_or_definition.class}]"
