@@ -58,7 +58,13 @@ module Elasticsearch
         #     Article.document_type "my-article"
         #
         def document_type name=nil
-          @document_type = name || @document_type || implicit(:document_type)
+          if name
+            @document_type = name
+          elsif @document_type
+            @document_type
+          else
+            Elasticsearch::Model.skip_type? ? '_doc' : implicit(:document_type)
+          end
         end
 
 

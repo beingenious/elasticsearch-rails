@@ -113,19 +113,28 @@ module Elasticsearch
               :stats,
               :timeout)
 
+            type_override = search_params.delete(:type)
             scroll = search_params.delete(:scroll) || '5m'
 
             body = options
 
             # Get the initial batch of documents and the scroll_id
             #
-            response = gateway.client.search( {
-                                         index: gateway.index_name,
-                                         type:  gateway.document_type,
-                                         scroll: scroll,
-                                         sort:   ['_doc'],
-                                         size:   20,
-                                         body:   body }.merge(search_params) )
+            request = {
+              index:  gateway.index_name,
+              scroll: scroll,
+              sort:   ['_doc'],
+              size:   20,
+              body:   body
+            }
+
+            request_type = type_override || gateway.document_type
+
+            if Elasticsearch::Model.include_type_in_request?(request_type)
+              request[:type] = request_type
+            end
+
+            response = gateway.client.search(request.merge(search_params))
 
 
             # Scroll the search object and break when receiving an empty array of hits

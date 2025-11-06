@@ -342,13 +342,20 @@ module Elasticsearch
         #
         def index_document(options={})
           document = self.as_indexed_json
+          request_options = options.dup
+          request_type = request_options.delete(:type) || document_type
 
-          client.index(
-            { index: index_name,
-              type:  document_type,
-              id:    self.id,
-              body:  document }.merge(options)
-          )
+          request = {
+            index: index_name,
+            id:    self.id,
+            body:  document
+          }
+
+          if Elasticsearch::Model.include_type_in_request?(request_type)
+            request[:type] = request_type
+          end
+
+          client.index(request.merge(request_options))
         end
 
         # Deletes the model instance from the index
@@ -365,11 +372,19 @@ module Elasticsearch
         # @see http://rubydoc.info/gems/elasticsearch-api/Elasticsearch/API/Actions:delete
         #
         def delete_document(options={})
-          client.delete(
-            { index: index_name,
-              type:  document_type,
-              id:    self.id }.merge(options)
-          )
+          request_options = options.dup
+          request_type = request_options.delete(:type) || document_type
+
+          request = {
+            index: index_name,
+            id:    self.id
+          }
+
+          if Elasticsearch::Model.include_type_in_request?(request_type)
+            request[:type] = request_type
+          end
+
+          client.delete(request.merge(request_options))
         end
 
         # Tries to gather the changed attributes of a model instance
@@ -404,12 +419,20 @@ module Elasticsearch
               attributes_in_database
             end
 
-            client.update(
-              { index: index_name,
-                type:  document_type,
-                id:    self.id,
-                body:  { doc: attributes } }.merge(options)
-            )
+            request_options = options.dup
+            request_type = request_options.delete(:type) || document_type
+
+            request = {
+              index: index_name,
+              id:    self.id,
+              body:  { doc: attributes }
+            }
+
+            if Elasticsearch::Model.include_type_in_request?(request_type)
+              request[:type] = request_type
+            end
+
+            client.update(request.merge(request_options))
           else
             index_document(options)
           end
@@ -430,12 +453,20 @@ module Elasticsearch
         # @return [Hash] The response from Elasticsearch
         #
         def update_document_attributes(attributes, options={})
-          client.update(
-            { index: index_name,
-              type:  document_type,
-              id:    self.id,
-              body:  { doc: attributes } }.merge(options)
-          )
+          request_options = options.dup
+          request_type = request_options.delete(:type) || document_type
+
+          request = {
+            index: index_name,
+            id:    self.id,
+            body:  { doc: attributes }
+          }
+
+          if Elasticsearch::Model.include_type_in_request?(request_type)
+            request[:type] = request_type
+          end
+
+          client.update(request.merge(request_options))
         end
       end
 

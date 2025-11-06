@@ -41,12 +41,24 @@ module Elasticsearch
         #
         def search(query_or_definition, options={})
           type = document_type || (klass ? __get_type_from_class(klass) : nil  )
+          request_options = options.dup
+          request_type = request_options.delete(:type) || type
 
           case
           when query_or_definition.respond_to?(:to_hash)
-            response = client.search( { index: index_name, type: type, body: query_or_definition.to_hash }.merge(options) )
+            request = {
+              index: index_name,
+              body:  query_or_definition.to_hash
+            }
+            request[:type] = request_type if Elasticsearch::Model.include_type_in_request?(request_type)
+            response = client.search(request.merge(request_options))
           when query_or_definition.is_a?(String)
-            response = client.search( { index: index_name, type: type, q: query_or_definition }.merge(options) )
+            request = {
+              index: index_name,
+              q:     query_or_definition
+            }
+            request[:type] = request_type if Elasticsearch::Model.include_type_in_request?(request_type)
+            response = client.search(request.merge(request_options))
           else
             raise ArgumentError, "[!] Pass the search definition as a Hash-like object or pass the query as a String" +
                                  " -- #{query_or_definition.class} given."
@@ -76,12 +88,24 @@ module Elasticsearch
         def count(query_or_definition=nil, options={})
           query_or_definition ||= { query: { match_all: {} } }
           type = document_type || (klass ? __get_type_from_class(klass) : nil  )
+          request_options = options.dup
+          request_type = request_options.delete(:type) || type
 
           case
           when query_or_definition.respond_to?(:to_hash)
-            response = client.count( { index: index_name, type: type, body: query_or_definition.to_hash }.merge(options) )
+            request = {
+              index: index_name,
+              body:  query_or_definition.to_hash
+            }
+            request[:type] = request_type if Elasticsearch::Model.include_type_in_request?(request_type)
+            response = client.count(request.merge(request_options))
           when query_or_definition.is_a?(String)
-            response = client.count( { index: index_name, type: type, q: query_or_definition }.merge(options) )
+            request = {
+              index: index_name,
+              q:     query_or_definition
+            }
+            request[:type] = request_type if Elasticsearch::Model.include_type_in_request?(request_type)
+            response = client.count(request.merge(request_options))
           else
             raise ArgumentError, "[!] Pass the search definition as a Hash-like object or pass the query as a String, not as [#{query_or_definition.class}]"
           end

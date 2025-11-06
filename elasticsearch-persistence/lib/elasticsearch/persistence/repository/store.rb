@@ -17,8 +17,16 @@ module Elasticsearch
         def save(document, options={})
           serialized = serialize(document)
           id   = __get_id_from_document(serialized)
-          type = document_type || __get_type_from_class(klass || document.class)
-          client.index( { index: index_name, type: type, id: id, body: serialized }.merge(options) )
+          default_type = document_type || __get_type_from_class(klass || document.class)
+          request_options = options.dup
+          request_type = request_options.delete(:type) || default_type
+          request = {
+            index: index_name,
+            id:    id,
+            body:  serialized
+          }
+          request[:type] = request_type if Elasticsearch::Model.include_type_in_request?(request_type)
+          client.index(request.merge(request_options))
         end
 
         # Update the serialized object in Elasticsearch with partial data or script
@@ -65,7 +73,13 @@ module Elasticsearch
             body.update( upsert: options.delete(:upsert)) if options[:upsert]
           end
 
-          client.update( { index: index_name, type: type, id: id, body: body }.merge(options) )
+          request = {
+            index: index_name,
+            id:    id,
+            body:  body
+          }
+          request[:type] = type if Elasticsearch::Model.include_type_in_request?(type)
+          client.update(request.merge(options))
         end
 
         # Remove the serialized object or document with specified ID from Elasticsearch
@@ -80,13 +94,20 @@ module Elasticsearch
         def delete(document, options={})
           if document.is_a?(String) || document.is_a?(Integer)
             id   = document
-            type = document_type || __get_type_from_class(klass)
+            default_type = document_type || __get_type_from_class(klass)
           else
             serialized = serialize(document)
             id   = __get_id_from_document(serialized)
-            type = document_type || __get_type_from_class(klass || document.class)
+            default_type = document_type || __get_type_from_class(klass || document.class)
           end
-          client.delete( { index: index_name, type: type, id: id }.merge(options) )
+          request_options = options.dup
+          request_type = request_options.delete(:type) || default_type
+          request = {
+            index: index_name,
+            id:    id
+          }
+          request[:type] = request_type if Elasticsearch::Model.include_type_in_request?(request_type)
+          client.delete(request.merge(request_options))
         end
       end
 

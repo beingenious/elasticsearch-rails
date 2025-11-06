@@ -120,10 +120,16 @@ module Elasticsearch
           end
 
           __find_in_batches(options) do |batch|
-            response = client.bulk \
-                         index:   target_index,
-                         type:    target_type,
-                         body:    __batch_to_bulk(batch, transform)
+            bulk_request = {
+              index: target_index,
+              body:  __batch_to_bulk(batch, transform)
+            }
+
+            if Elasticsearch::Model.include_type_in_request?(target_type)
+              bulk_request[:type] = target_type
+            end
+
+            response = client.bulk(bulk_request)
 
             yield response if block_given?
 

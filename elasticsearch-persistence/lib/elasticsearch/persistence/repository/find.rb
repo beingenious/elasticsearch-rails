@@ -44,14 +44,22 @@ module Elasticsearch
         #
         def exists?(id, options={})
           type     = document_type || (klass ? __get_type_from_class(klass) : '_all')
-          client.exists( { index: index_name, type: type, id: id }.merge(options) )
+          request_options = options.dup
+          request_type    = request_options.delete(:type) || type
+          request  = { index: index_name, id: id }
+          request[:type] = request_type if Elasticsearch::Model.include_type_in_request?(request_type)
+          client.exists(request.merge(request_options))
         end
 
         # @api private
         #
         def __find_one(id, options={})
           type     = document_type || (klass ? __get_type_from_class(klass) : '_all')
-          document = client.get( { index: index_name, type: type, id: id }.merge(options) )
+          request_options = options.dup
+          request_type    = request_options.delete(:type) || type
+          request  = { index: index_name, id: id }
+          request[:type] = request_type if Elasticsearch::Model.include_type_in_request?(request_type)
+          document = client.get(request.merge(request_options))
 
           deserialize(document)
         rescue Elasticsearch::Transport::Transport::Errors::NotFound => e
@@ -62,7 +70,14 @@ module Elasticsearch
         #
         def __find_many(ids, options={})
           type     = document_type || (klass ? __get_type_from_class(klass) : '_all')
-          documents = client.mget( { index: index_name, type: type, body: { ids: ids } }.merge(options) )
+          request_options = options.dup
+          request_type    = request_options.delete(:type) || type
+          request  = {
+            index: index_name,
+            body:  { ids: ids }
+          }
+          request[:type] = request_type if Elasticsearch::Model.include_type_in_request?(request_type)
+          documents = client.mget(request.merge(request_options))
 
           documents['docs'].map { |document| document['found'] ? deserialize(document) : nil }
         end

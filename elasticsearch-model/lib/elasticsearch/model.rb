@@ -137,6 +137,26 @@ module Elasticsearch
       @settings ||= {}
     end
 
+    # Determine whether requests should omit the deprecated `type` parameter.
+    #
+    # Defaults to `true`, so types are skipped unless explicitly re-enabled.
+    #
+    def self.skip_type?
+      !!settings.fetch(:skip_type, true)
+    end
+
+    # Explicitly enable or disable sending the `type` parameter in requests.
+    #
+    def self.skip_type=(value)
+      settings[:skip_type] = value
+    end
+
+    # Helper used by request builders to decide if a type should be included.
+    #
+    def self.include_type_in_request?(type)
+      !skip_type? && !type.nil?
+    end
+
     module ClassMethods
       # Get the client common for all models
       #

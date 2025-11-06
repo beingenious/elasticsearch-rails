@@ -17,10 +17,14 @@ module Elasticsearch
         #
         def initialize(klass, query_or_payload, options={})
           @klass   = klass
-          @options = options
+          @options = options.dup
 
-          __index_name    = options[:index] || klass.index_name
-          __document_type = options[:type]  || klass.document_type
+          request_options = @options.dup
+          __index_name    = request_options.delete(:index) || klass.index_name
+          __document_type = request_options.delete(:type)  || klass.document_type
+
+          body = nil
+          q    = nil
 
           case
             # search query: ...
@@ -36,11 +40,18 @@ module Elasticsearch
               q = query_or_payload
           end
 
+          @definition = { index: __index_name }
           if body
-            @definition = { index: __index_name, type: __document_type, body: body }.update options
+            @definition[:body] = body
           else
-            @definition = { index: __index_name, type: __document_type, q: q }.update options
+            @definition[:q] = q
           end
+
+          if Elasticsearch::Model.include_type_in_request?(__document_type)
+            @definition[:type] = __document_type
+          end
+
+          @definition.update(request_options)
         end
 
         # Performs the request and returns the response from client
