@@ -117,8 +117,8 @@ module Elasticsearch
 
         # Delegate methods to `@target`
         #
-        def method_missing(method_name, *arguments, &block)
-          target.respond_to?(method_name) ? target.__send__(method_name, *arguments, &block) : super
+        def method_missing(method_name, *arguments, **kwargs, &block)
+          target.respond_to?(method_name) ? target.__send__(method_name, *arguments, **kwargs, &block) : super
         end
 
         # Respond to methods from `@target`
@@ -172,7 +172,7 @@ module Elasticsearch
         end
 
         def as_indexed_json(options={})
-          target.respond_to?(:as_indexed_json) ? target.__send__(:as_indexed_json, options) : super
+          target.respond_to?(:as_indexed_json) ? target.__send__(:as_indexed_json, **options) : super
         end
       end
     end

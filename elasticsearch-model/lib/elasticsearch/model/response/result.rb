@@ -48,14 +48,14 @@ module Elasticsearch
 
         # Delegate methods to `@result` or `@result._source`
         #
-        def method_missing(name, *arguments)
+        def method_missing(name, *arguments, **kwargs)
           case
           when name.to_s.end_with?('?')
-            @result.__send__(name, *arguments) || ( @result._source && @result._source.__send__(name, *arguments) )
+            @result.__send__(name, *arguments, **kwargs) || ( @result._source && @result._source.__send__(name, *arguments, **kwargs) )
           when @result.respond_to?(name)
-            @result.__send__ name, *arguments
+            @result.__send__ name, *arguments, **kwargs
           when @result._source && @result._source.respond_to?(name)
-            @result._source.__send__ name, *arguments
+            @result._source.__send__ name, *arguments, **kwargs
           else
             super
           end
