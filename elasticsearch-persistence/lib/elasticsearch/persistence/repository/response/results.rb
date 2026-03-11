@@ -35,8 +35,8 @@ module Elasticsearch
             @options = options
           end
 
-          def method_missing(method_name, *arguments, &block)
-            results.respond_to?(method_name) ? results.__send__(method_name, *arguments, &block) : super
+          def method_missing(method_name, *arguments, **kwargs, &block)
+            results.respond_to?(method_name) ? results.__send__(method_name, *arguments, **kwargs, &block) : super
           end
 
           def respond_to?(method_name, include_private = false)

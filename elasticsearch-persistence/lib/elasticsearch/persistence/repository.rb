@@ -4,8 +4,8 @@ module Elasticsearch
     # Delegate methods to the repository (acting as a gateway)
     #
     module GatewayDelegation
-      def method_missing(method_name, *arguments, &block)
-        gateway.respond_to?(method_name) ? gateway.__send__(method_name, *arguments, &block) : super
+      def method_missing(method_name, *arguments, **kwargs, &block)
+        gateway.respond_to?(method_name) ? gateway.__send__(method_name, *arguments, **kwargs, &block) : super
       end
 
       def respond_to?(method_name, include_private=false)
