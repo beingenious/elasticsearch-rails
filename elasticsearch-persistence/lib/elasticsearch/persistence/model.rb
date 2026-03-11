@@ -1,7 +1,6 @@
 require 'active_support/core_ext/module/delegation'
 
 require 'active_model'
-require 'virtus'
 
 require 'elasticsearch/persistence'
 require 'elasticsearch/persistence/model/base'
@@ -13,16 +12,10 @@ require 'elasticsearch/persistence/model/dirty'
 module Elasticsearch
   module Persistence
 
-    # When included, extends a plain Ruby class with persistence-related features via the ActiveRecord pattern
-    #
-    # @example Include the repository in a custom class
-    #
-    #     require 'elasticsearch/persistence/model'
-    #
-    #     class MyObject
-    #       include Elasticsearch::Persistence::Repository
-    #     end
-    #
+    # Boolean type placeholder (replaces Virtus::Attribute::Boolean)
+    # Used by attribute declarations: `attribute :enabled, Boolean`
+    module Boolean; end
+
     module Model
       def self.included(base)
         base.class_eval do
@@ -32,8 +25,8 @@ module Elasticsearch
           include ActiveModel::Serializers::JSON
           include ActiveModel::Validations
           include ActiveModel::Dirty
-
-          include Virtus.model
+          include ActiveModel::Attributes
+          include ActiveModel::AttributeAssignment
 
           extend  ActiveModel::Callbacks
           define_model_callbacks :create, :save, :update, :destroy, :validation
@@ -50,11 +43,39 @@ module Elasticsearch
           include Elasticsearch::Persistence::Model::Dirty::InstanceMethods
 
           class << self
-            # Re-define the Virtus' `attribute` method, to configure Elasticsearch mapping as well
+            def virtus_default_procs
+              @virtus_default_procs ||= {}
+            end
+
+            # Attribute method compatible with the Virtus-style API:
+            #   attribute :name, String, default: 'foo', mapping: { type: 'keyword' }
+            #
+            # Translates Ruby types (String, Integer, etc.) to ActiveModel attribute types
+            # and configures Elasticsearch mapping.
             #
             def attribute(name, type=nil, options={}, &block)
               mapping = options.delete(:mapping) || {}
-              super
+              virtus_default_procs.delete(name.to_s)
+
+              # Translate Ruby class types to ActiveModel::Attributes type symbols
+              am_type = Utils.ruby_type_to_am_type(type)
+
+              # Handle defaults: ActiveModel needs procs for mutable defaults
+              if options.key?(:default)
+                default = options.delete(:default)
+                if default.is_a?(Proc)
+                  virtus_default_procs[name.to_s] = default
+                  super(name, am_type)
+                elsif default.is_a?(Hash) || default.is_a?(Array)
+                  mutable_default = default
+                  default = -> { Utils.deep_dup(mutable_default) }
+                  super(name, am_type, **{ default: default })
+                else
+                  super(name, am_type, **{ default: default })
+                end
+              else
+                super(name, am_type)
+              end
 
               gateway.mapping do
                 indexes name, {type: Utils::lookup_type(type)}.merge(mapping)
@@ -156,3 +177,6 @@ module Elasticsearch
 
   end
 end
+
+# Make Boolean available at top level (as Virtus did)
+Boolean = Elasticsearch::Persistence::Boolean unless defined?(Boolean)

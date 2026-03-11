@@ -124,7 +124,8 @@ module Elasticsearch
               attributes.update( { updated_at: Time.now.utc } )
               response = self.class.gateway.update(self.id, { doc: attributes.transform_keys(&:to_s) }.merge(options))
 
-              self.attributes = self.attributes.merge(attributes)
+              known = attributes.select { |k, _| self.class.attribute_types.key?(k.to_s) }
+              self.attributes = known unless known.empty?
               @_index    = response['_index']
               @_type     = response['_type']
               @_version  = response['_version']

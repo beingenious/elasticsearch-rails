@@ -1,33 +1,15 @@
 require 'test_helper'
 
-require 'active_model'
-require 'virtus'
-
-require 'elasticsearch/persistence/model/errors'
-require 'elasticsearch/persistence/model/find'
+require 'elasticsearch/persistence/model'
 
 class Elasticsearch::Persistence::ModelFindTest < Test::Unit::TestCase
   context "The model find module," do
 
     class DummyFindModel
-      include ActiveModel::Naming
-      include ActiveModel::Conversion
-      include ActiveModel::Serialization
-      include ActiveModel::Serializers::JSON
-      include ActiveModel::Validations
-
-      include Virtus.model
-
-      extend  Elasticsearch::Persistence::Model::Find::ClassMethods
-
-      extend  ActiveModel::Callbacks
-      define_model_callbacks :create, :save, :update, :destroy
-      define_model_callbacks :find, :touch, only: :after
+      include Elasticsearch::Persistence::Model
 
       attribute :title, String
       attribute :count, Integer, default: 0
-      attribute :created_at, DateTime, default: lambda { |o,a| Time.now.utc }
-      attribute :updated_at, DateTime, default: lambda { |o,a| Time.now.utc }
     end
 
     setup do

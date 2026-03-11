@@ -2,7 +2,7 @@ RUBY_1_8 = defined?(RUBY_VERSION) && RUBY_VERSION < '1.9'
 
 exit(0) if RUBY_1_8
 
-$LOAD_PATH.unshift File.expand_path('../../../elasticsearch-model/lib', __FILE__) if File.exists? File.expand_path('../../../elasticsearch-model/lib', __FILE__)
+$LOAD_PATH.unshift File.expand_path('../../../elasticsearch-model/lib', __FILE__) if File.exist? File.expand_path('../../../elasticsearch-model/lib', __FILE__)
 
 require 'simplecov' and SimpleCov.start { add_filter "/test|test_/" } if ENV["COVERAGE"]
 

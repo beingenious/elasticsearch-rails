@@ -1,24 +1,25 @@
-require 'ice_nine'
-require 'ice_nine/core_ext/object'
-
 module Elasticsearch
   module Persistence
     module Model
       module Dirty
         module ClassMethods #:nodoc:
-          # Track each (virtus) attributes
-          def attribute(attr_name, *new_properties)
-            super
+          # Track each attribute for dirty tracking
+          def attribute(attr_name, *new_properties, **options)
+            super(attr_name, *new_properties, **options)
             define_attribute_methods attr_name
 
             method_str = <<-"EOF_M"
               def #{attr_name}=(new_value)
-                #{attr_name}_will_change! unless new_value == attribute_set[:#{attr_name}].get(self)
+                type = self.class.attribute_types['#{attr_name}']
+                casted_new_value = type.cast(new_value)
+                current = @attributes['#{attr_name}'].value
+                #{attr_name}_will_change! unless casted_new_value == current
                 super
               end
 
               def #{attr_name}
-                super.deep_freeze
+                value = super
+                Elasticsearch::Persistence::Model::Utils.deep_freeze(value)
               end
             EOF_M
 

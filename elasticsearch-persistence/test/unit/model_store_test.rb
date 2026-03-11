@@ -1,36 +1,16 @@
 require 'test_helper'
 
-require 'active_model'
-require 'virtus'
-
-require 'elasticsearch/persistence/model/base'
-require 'elasticsearch/persistence/model/errors'
-require 'elasticsearch/persistence/model/store'
+require 'elasticsearch/persistence/model'
 
 class Elasticsearch::Persistence::ModelStoreTest < Test::Unit::TestCase
   context "The model store module," do
 
     class DummyStoreModel
-      include ActiveModel::Naming
-      include ActiveModel::Conversion
-      include ActiveModel::Serialization
-      include ActiveModel::Serializers::JSON
-      include ActiveModel::Validations
+      include Elasticsearch::Persistence::Model
 
-      include Virtus.model
-
-      include Elasticsearch::Persistence::Model::Base::InstanceMethods
-      extend  Elasticsearch::Persistence::Model::Store::ClassMethods
-      include Elasticsearch::Persistence::Model::Store::InstanceMethods
-
-      extend  ActiveModel::Callbacks
-      define_model_callbacks :create, :save, :update, :destroy
-      define_model_callbacks :find, :touch, only: :after
-
+      attribute :name, String
       attribute :title, String
       attribute :count, Integer, default: 0
-      attribute :created_at, DateTime, default: lambda { |o,a| Time.now.utc }
-      attribute :updated_at, DateTime, default: lambda { |o,a| Time.now.utc }
     end
 
     setup do
@@ -285,7 +265,7 @@ class Elasticsearch::Persistence::ModelStoreTest < Test::Unit::TestCase
           .expects(:update)
           .with do |id, options|
             assert_equal 'abc123', id
-            assert_equal 'UPDATED', options[:doc][:title]
+            assert_equal 'UPDATED', options[:doc]['title']
             true
           end
           .returns({'_id' => 'abc123', 'version' => 2})
@@ -332,7 +312,7 @@ class Elasticsearch::Persistence::ModelStoreTest < Test::Unit::TestCase
           .with do |object, options|
             assert_equal 'abc123', object
             assert_equal nil, options[:id]
-            assert_equal 'INVALID', options[:doc][:title]
+            assert_equal 'INVALID', options[:doc]['title']
             true
           end
           .returns({'_id' => 'abc123'})

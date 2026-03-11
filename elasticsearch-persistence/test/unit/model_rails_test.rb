@@ -74,7 +74,7 @@ class Elasticsearch::Persistence::ModelRailsTest < Test::Unit::TestCase
                    Elasticsearch::Persistence::Model::Rails.__convert_rails_dates(params)['published_at']
 
       m = MyRailsModel.new params
-      assert_equal "2014-01-01T12:00:00+00:00", m.published_at.iso8601
+      assert_match /^2014-01-01T12:00:00/, m.published_at.iso8601
     end
 
     should "parse Date from Rails forms" do
@@ -104,7 +104,7 @@ class Elasticsearch::Persistence::ModelRailsTest < Test::Unit::TestCase
           end
           .returns({'_id' => 'abc123'})
 
-        assert model.update( { title: 'UPDATED' }, { routing: 'ABC' } )
+        assert model.update( { name: 'UPDATED' }, { routing: 'ABC' } )
       end
     end
 

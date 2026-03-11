@@ -28,11 +28,9 @@ Gem::Specification.new do |s|
   s.add_dependency "activesupport",       '> 4'
   s.add_dependency "activemodel",         '> 4'
   s.add_dependency "hashie"
-  s.add_dependency "virtus"
-  s.add_dependency "ice_nine"
 
-  s.add_development_dependency "bundler", "~> 1.5"
-  s.add_development_dependency "rake", "~> 11.1"
+  s.add_development_dependency "bundler"
+  s.add_development_dependency "rake"
 
   s.add_development_dependency "oj"
 
